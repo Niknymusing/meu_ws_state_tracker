@@ -1,0 +1,74 @@
+# Haskell
+dist/
+dist-newstyle/
+.stack-work/
+*.hi
+*.o
+*.prof
+*.aux
+*.hp
+*.eventlog
+*.tix
+.HTF/
+.ghc.environment.*
+
+# Cabal
+cabal.sandbox.config
+cabal.config
+cabal.project.local
+cabal.project.local~
+.cabal-sandbox/
+
+# Stack
+.stack-work/
+stack.yaml.lock
+
+# GHCi
+.ghci
+
+# IDE
+.vscode/
+.idea/
+*.iml
+.hie/
+.hiedb
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs and temp files
+*.log
+*.tmp
+*.swp
+*~
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Build artifacts
+*.exe
+*.dll
+*.so
+*.dylib
+
+# SMT solver temp files
+*.smt2
+*.z3
+
+# MEU system workspace data
+workspace/
+*.meu-db
+*.meu-cache
+
+# Performance profiling
+*.prof*
+*.hp
+*.eventlog
+*.stats
+
+# Documentation build
+docs/_build/
+docs/dist/

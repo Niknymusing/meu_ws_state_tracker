@@ -1,0 +1,34 @@
+# Fourmolu configuration for MEU System Workspace State Tracker
+
+# Indentation and spacing
+indentation: 2
+comma-style: leading
+import-export-style: diff-friendly
+indent-wheres: true
+record-brace-space: true
+newlines-between-decls: 1
+haddock-style: single-line
+let-style: inline
+in-style: right-align
+
+# Line length and wrapping
+column-limit: 100
+function-arrows: trailing
+respectful: true
+
+# GADT and type-level programming formatting
+single-constraint-parens: always
+unicode: never
+pragma-style: compact
+single-deriving-parens: always
+
+# Import formatting
+sort-pragmas: true
+import-export-style: diff-friendly
+
+# MEU-specific formatting preferences
+fixities: []
+
+# Extensions to consider for formatting
+# (These don't affect formatting but document what we expect)
+# DataKinds, TypeFamilies, GADTs, KindSignatures, TypeApplications

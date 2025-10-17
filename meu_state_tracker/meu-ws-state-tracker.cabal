@@ -1,0 +1,198 @@
+cabal-version: 3.0
+name: meu-ws-state-tracker
+version: 0.1.0.0
+synopsis: MEU System Workspace State Tracker
+description:
+    A Haskell-based Workspace State Tracker for the Model-Execute-Update (MEU)
+    framework that manages software project development through a network of
+    interconnected MEU triplets.
+homepage: https://github.com/meu-framework/ws-state-tracker
+bug-reports: https://github.com/meu-framework/ws-state-tracker/issues
+license: MIT
+license-file: LICENSE
+author: MEU Framework Team
+maintainer: team@meu-framework.org
+copyright: 2025 MEU Framework Team
+category: Development, Framework
+build-type: Simple
+extra-doc-files:
+    README.md
+    CHANGELOG.md
+extra-source-files:
+    specs/**/*.md
+    docs/**/*.md
+
+common warnings
+    ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates
+                 -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules
+                 -Wpartial-fields -Wredundant-constraints -Wno-unused-packages
+
+library
+    import: warnings
+    exposed-modules:
+        MEU.Core.Types
+        MEU.Core.Triplet
+        MEU.Core.Arrows
+        MEU.WS.StateTracker
+        MEU.WS.Registries
+        MEU.WS.API
+        MEU.Transforms.Refinement
+        MEU.Transforms.Coarsening
+        MEU.Logic.GeometricTheory
+        MEU.Logic.SMT
+        MEU.DSL.Types
+        MEU.DSL.Primitives
+        MEU.DSL.Parser
+        MEU.Internal.Monad
+        MEU.Internal.Utils
+        MEU.IO.Serialization
+        MEU.IO.CLI
+    other-modules:
+        MEU.WS.Hypergraph
+        MEU.Internal.Parallel
+        MEU.Internal.Streaming
+    hs-source-dirs: src
+    default-language: GHC2021
+    default-extensions:
+        DerivingStrategies
+        DerivingVia
+        DeriveGeneric
+        DeriveAnyClass
+        DataKinds
+        TypeFamilies
+        GADTs
+        KindSignatures
+        RankNTypes
+        ScopedTypeVariables
+        TypeApplications
+        OverloadedStrings
+        LambdaCase
+        MultiParamTypeClasses
+        FunctionalDependencies
+        FlexibleContexts
+        FlexibleInstances
+        UndecidableInstances
+        AllowAmbiguousTypes
+        TypeOperators
+        PolyKinds
+        ConstraintKinds
+        StandaloneDeriving
+        GeneralizedNewtypeDeriving
+    build-depends:
+        base >= 4.17 && < 5,
+        effectful >= 2.3,
+        effectful-core >= 2.3,
+        free >= 5.1,
+        mtl >= 2.3,
+        transformers >= 0.6,
+        aeson >= 2.1,
+        bytestring >= 0.11,
+        text >= 2.0,
+        containers >= 0.6,
+        unordered-containers >= 0.2,
+        vector >= 0.13,
+        hashable >= 1.4,
+        uuid >= 1.3,
+        time >= 1.12,
+        stm >= 2.5,
+        async >= 2.2,
+        sbv >= 10.0,
+        filepath >= 1.4,
+        directory >= 1.3,
+        optparse-applicative >= 0.17,
+        servant >= 0.19,
+        servant-server >= 0.19,
+        warp >= 3.3,
+        wai >= 3.2,
+        wai-extra >= 3.1,
+        http-types >= 0.12,
+        scientific >= 0.3,
+        attoparsec >= 0.14,
+        monad-logger >= 0.3,
+        fast-logger >= 3.1,
+        compact >= 0.1,
+        deepseq >= 1.4,
+        parallel >= 3.2,
+        conduit >= 1.3,
+        conduit-extra >= 1.3,
+        resourcet >= 1.2,
+        exceptions >= 0.10,
+        safe-exceptions >= 0.1
+
+executable meu-ws-tracker
+    import: warnings
+    main-is: Main.hs
+    hs-source-dirs: app
+    default-language: GHC2021
+    default-extensions:
+        OverloadedStrings
+        LambdaCase
+        TypeApplications
+    build-depends:
+        base,
+        meu-ws-state-tracker,
+        optparse-applicative
+
+test-suite meu-ws-state-tracker-test
+    import: warnings
+    default-language: GHC2021
+    type: exitcode-stdio-1.0
+    hs-source-dirs: tests
+    main-is: Spec.hs
+    other-modules:
+        TripletSpec
+        RegistrySpec
+        InitializationSpec
+        TripletCreationSpec
+        RegistryAPISpec
+        RefinementSpec
+        SMTSpec
+        VerificationAPISpec
+        CoarseningSpec
+        ArrowsSpec
+        DataflowSpec
+        ArrowAPISpec
+        LogicSpec
+    default-extensions:
+        OverloadedStrings
+        TypeApplications
+        DataKinds
+        GADTs
+        LambdaCase
+        ScopedTypeVariables
+    build-depends:
+        base,
+        meu-ws-state-tracker,
+        hspec >= 2.10,
+        hspec-discover >= 2.10,
+        QuickCheck >= 2.14,
+        quickcheck-instances >= 0.3,
+        hspec-contrib >= 0.5,
+        temporary >= 1.3,
+        directory >= 1.3,
+        filepath >= 1.4,
+        aeson >= 2.1,
+        bytestring >= 0.11,
+        text >= 2.0,
+        containers >= 0.6,
+        stm >= 2.5,
+        async >= 2.2,
+        time >= 1.12
+
+benchmark meu-ws-state-tracker-bench
+    import: warnings
+    default-language: GHC2021
+    type: exitcode-stdio-1.0
+    hs-source-dirs: bench
+    main-is: Performance.hs
+    default-extensions:
+        OverloadedStrings
+        TypeApplications
+    build-depends:
+        base,
+        meu-ws-state-tracker,
+        criterion >= 1.6,
+        deepseq >= 1.4,
+        containers >= 0.6,
+        vector >= 0.13,
+        stm >= 2.5

@@ -1,0 +1,60 @@
+# HLint configuration for MEU System Workspace State Tracker
+
+- arguments: [--cpp-simple, --extension=GADTs, --extension=TypeFamilies, --extension=DataKinds]
+
+# Ignore some warnings in certain files or functions
+- ignore:
+    name: "Use newtype instead of data"
+    within: "MEU.Core.Types"
+
+- ignore:
+    name: "Redundant do"
+    within: "MEU.Logic.SMT"
+
+- ignore:
+    name: "Use <$>"
+    within: ["MEU.WS.StateTracker", "MEU.Transforms.Refinement"]
+
+# Custom rules for MEU framework
+- warn:
+    lhs: "fmap f (Just x)"
+    rhs: "Just (f x)"
+    name: "Use explicit Just constructor for clarity"
+
+# Enable stricter rules for type safety
+- warn:
+    name: "Use typed holes for debugging"
+    message: "Consider removing typed holes in production code"
+    category: "Production"
+
+# MEU-specific naming conventions
+- suggest:
+    name: "Use MEU prefix for triplet types"
+    within: "MEU.Core.Triplet"
+
+- suggest:
+    name: "Use Registry suffix for registry types"
+    within: "MEU.WS.Registries"
+
+# Performance hints
+- warn:
+    name: "Use strict fields in data types"
+    message: "Consider using strict fields for performance in concurrent registries"
+    within: "MEU.WS.Registries"
+
+# Concurrent programming hints
+- warn:
+    name: "Use STM primitives"
+    message: "Consider using STM primitives for thread-safe operations"
+    within: ["MEU.WS.StateTracker", "MEU.WS.Registries"]
+
+# SMT-specific rules
+- warn:
+    name: "Handle SMT solver timeouts"
+    message: "Ensure proper timeout handling for SMT operations"
+    within: "MEU.Logic.SMT"
+
+# Disable warnings for generated code
+- ignore:
+    name: "Reduce duplication"
+    within: "MEU.IO.Serialization"

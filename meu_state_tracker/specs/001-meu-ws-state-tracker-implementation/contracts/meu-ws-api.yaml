@@ -1,0 +1,1136 @@
+openapi: 3.0.3
+info:
+  title: MEU System Workspace State Tracker API
+  description: |
+    RESTful API for the Model-Execute-Update (MEU) framework Workspace State Tracker.
+    Provides endpoints for managing MEU triplets, registries, and system operations.
+  version: 1.0.0
+  contact:
+    name: MEU System Team
+    url: https://github.com/meu-framework/ws-state-tracker
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Development server
+  - url: https://meu-system.dev/api/v1
+    description: Staging server
+
+paths:
+  # MEU Triplet Operations
+  /triplets:
+    get:
+      summary: List MEU triplets
+      description: Retrieve a list of MEU triplets with optional filtering
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [source, branch, leaf]
+          description: Filter by triplet type
+        - name: parent_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+          description: Filter by parent triplet ID
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: List of MEU triplets
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  triplets:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/MEUTripletSummary'
+                  total:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create MEU triplet
+      description: Create a new MEU triplet (source or through refinement)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTripletRequest'
+      responses:
+        '201':
+          description: MEU triplet created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MEUTriplet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Triplet with ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /triplets/{triplet_id}:
+    get:
+      summary: Get MEU triplet
+      description: Retrieve detailed information about a specific MEU triplet
+      parameters:
+        - name: triplet_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: MEU triplet details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MEUTriplet'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Update MEU triplet
+      description: Update an existing MEU triplet
+      parameters:
+        - name: triplet_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTripletRequest'
+      responses:
+        '200':
+          description: MEU triplet updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MEUTriplet'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    delete:
+      summary: Delete MEU triplet
+      description: Delete a MEU triplet (only if no children exist)
+      parameters:
+        - name: triplet_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: MEU triplet deleted successfully
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Cannot delete triplet with children
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Transform Operations
+  /triplets/{triplet_id}/refine:
+    post:
+      summary: Refine MEU triplet
+      description: Execute refinement transform to create child triplets
+      parameters:
+        - name: triplet_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefinementRequest'
+      responses:
+        '200':
+          description: Refinement completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RefinementResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /triplets/{triplet_id}/coarsen:
+    post:
+      summary: Coarsen MEU triplets
+      description: Execute coarsening transform to collapse child triplets
+      parameters:
+        - name: triplet_id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CoarseningRequest'
+      responses:
+        '200':
+          description: Coarsening completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CoarseningResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  # Registry Operations
+  /registries/types:
+    get:
+      summary: List type definitions
+      description: Retrieve registered type definitions
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+            enum: [model, execution, update]
+        - name: search
+          in: query
+          schema:
+            type: string
+          description: Search by type name or signature
+      responses:
+        '200':
+          description: List of type definitions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TypeDefinition'
+
+    post:
+      summary: Register type definition
+      description: Register a new type definition in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypeDefinition'
+      responses:
+        '201':
+          description: Type registered successfully
+        '409':
+          description: Type already exists
+
+  /registries/values:
+    get:
+      summary: List typed values
+      description: Retrieve registered typed values
+      parameters:
+        - name: type_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: triplet_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: List of typed values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TypedValue'
+
+    post:
+      summary: Register typed value
+      description: Register a new typed value in the system
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TypedValue'
+      responses:
+        '201':
+          description: Value registered successfully
+
+  /registries/dsl-primitives:
+    get:
+      summary: List DSL primitives
+      description: Retrieve registered DSL primitive functions
+      parameters:
+        - name: domain
+          in: query
+          schema:
+            type: string
+            enum: [model, execution, update]
+      responses:
+        '200':
+          description: List of DSL primitives
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DSLPrimitive'
+
+    post:
+      summary: Register DSL primitive
+      description: Register a new DSL primitive function
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DSLPrimitive'
+      responses:
+        '201':
+          description: DSL primitive registered successfully
+
+  # Verification Operations
+  /verification/acceptance-criteria:
+    post:
+      summary: Verify acceptance criteria
+      description: Execute geometric logic verification for acceptance criteria
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerificationRequest'
+      responses:
+        '200':
+          description: Verification completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/VerificationResult'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /verification/axiom-consistency:
+    post:
+      summary: Check axiom consistency
+      description: Verify consistency of geometric theory axioms
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsistencyCheckRequest'
+      responses:
+        '200':
+          description: Consistency check completed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ConsistencyCheckResult'
+
+  # System Operations
+  /system/status:
+    get:
+      summary: Get system status
+      description: Retrieve current system status and metrics
+      responses:
+        '200':
+          description: System status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemStatus'
+
+  /system/metrics:
+    get:
+      summary: Get system metrics
+      description: Retrieve performance and operational metrics
+      responses:
+        '200':
+          description: System metrics
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SystemMetrics'
+
+components:
+  schemas:
+    MEUTripletSummary:
+      type: object
+      properties:
+        triplet_id:
+          type: string
+          format: uuid
+        triplet_type:
+          type: string
+          enum: [source, branch, leaf]
+        description:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        children_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        state:
+          type: string
+          enum: [initializing, active, refining, coarsening, suspended, merged]
+
+    MEUTriplet:
+      type: object
+      properties:
+        triplet_id:
+          type: string
+          format: uuid
+        triplet_type:
+          type: string
+          enum: [source, branch, leaf]
+        metadata:
+          $ref: '#/components/schemas/TripletMetadata'
+        domains:
+          $ref: '#/components/schemas/TripletDomains'
+        arrows:
+          $ref: '#/components/schemas/DataflowArrows'
+        acceptance_criteria:
+          $ref: '#/components/schemas/AcceptanceCriteria'
+        inclusions:
+          $ref: '#/components/schemas/InclusionMap'
+        state:
+          type: string
+          enum: [initializing, active, refining, coarsening, suspended, merged]
+
+    TripletMetadata:
+      type: object
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: string
+        description:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          nullable: true
+        children:
+          type: array
+          items:
+            type: string
+            format: uuid
+        siblings:
+          type: array
+          items:
+            type: string
+            format: uuid
+        depth:
+          type: integer
+          minimum: 0
+
+    TripletDomains:
+      type: object
+      properties:
+        model:
+          $ref: '#/components/schemas/ModelState'
+        execution:
+          $ref: '#/components/schemas/ExecutionState'
+        update:
+          $ref: '#/components/schemas/UpdateState'
+
+    ModelState:
+      type: object
+      properties:
+        specifications:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Specification'
+        dsl_primitives:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DSLPrimitive'
+        types:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TypeDefinition'
+        values:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TypedValue'
+        tests:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/TestDefinition'
+
+    ExecutionState:
+      type: object
+      properties:
+        environment:
+          $ref: '#/components/schemas/ExecutionEnvironment'
+        deployed_models:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DeployedModel'
+        logging_config:
+          $ref: '#/components/schemas/LoggingConfiguration'
+        resource_allocation:
+          $ref: '#/components/schemas/ResourceAllocation'
+        feedback_channels:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/FeedbackChannel'
+
+    UpdateState:
+      type: object
+      properties:
+        evaluators:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Evaluator'
+        verifiers:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/Verifier'
+        geometric_theory:
+          $ref: '#/components/schemas/GeometricTheory'
+        acceptance_criteria:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AcceptanceCriterion'
+        policies:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/UpdatePolicy'
+
+    DataflowArrows:
+      type: object
+      properties:
+        model_to_execution:
+          $ref: '#/components/schemas/ArrowCollection'
+        execution_to_model:
+          $ref: '#/components/schemas/ArrowCollection'
+        execution_to_update:
+          $ref: '#/components/schemas/ArrowCollection'
+        update_to_execution:
+          $ref: '#/components/schemas/ArrowCollection'
+        update_to_model:
+          $ref: '#/components/schemas/ArrowCollection'
+        model_to_update:
+          $ref: '#/components/schemas/ArrowCollection'
+
+    ArrowCollection:
+      type: object
+      properties:
+        arrows:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/DataflowArrow'
+        compositions:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/ArrowComposition'
+        metrics:
+          $ref: '#/components/schemas/ArrowMetrics'
+
+    DataflowArrow:
+      type: object
+      properties:
+        arrow_id:
+          type: string
+          format: uuid
+        input_type:
+          $ref: '#/components/schemas/TypeSignature'
+        output_type:
+          $ref: '#/components/schemas/TypeSignature'
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/ArrowConstraint'
+        metadata:
+          $ref: '#/components/schemas/ArrowMetadata'
+
+    TypeDefinition:
+      type: object
+      properties:
+        type_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        signature:
+          $ref: '#/components/schemas/TypeSignature'
+        validators:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeValidator'
+        constructors:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeConstructor'
+        destructors:
+          type: array
+          items:
+            $ref: '#/components/schemas/TypeDestructor'
+        metadata:
+          $ref: '#/components/schemas/TypeMetadata'
+
+    TypeSignature:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [base]
+            name:
+              type: string
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [product]
+            components:
+              type: array
+              items:
+                $ref: '#/components/schemas/TypeSignature'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [sum]
+            alternatives:
+              type: array
+              items:
+                $ref: '#/components/schemas/TypeSignature'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [function]
+            input:
+              $ref: '#/components/schemas/TypeSignature'
+            output:
+              $ref: '#/components/schemas/TypeSignature'
+
+    TypedValue:
+      type: object
+      properties:
+        value_id:
+          type: string
+          format: uuid
+        type_id:
+          type: string
+          format: uuid
+        value:
+          description: Serialized value data (type-specific)
+        metadata:
+          $ref: '#/components/schemas/ValueMetadata'
+
+    DSLPrimitive:
+      type: object
+      properties:
+        primitive_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        input_type:
+          $ref: '#/components/schemas/TypeSignature'
+        output_type:
+          $ref: '#/components/schemas/TypeSignature'
+        description:
+          type: string
+        domain:
+          type: string
+          enum: [model, execution, update]
+        metadata:
+          $ref: '#/components/schemas/PrimitiveMetadata'
+
+    AcceptanceCriteria:
+      type: object
+      properties:
+        criteria_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+        formulas:
+          type: array
+          items:
+            $ref: '#/components/schemas/GeometricFormula'
+        test_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        metadata:
+          $ref: '#/components/schemas/CriteriaMetadata'
+
+    GeometricFormula:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [atom]
+            relation:
+              $ref: '#/components/schemas/LogicalRelation'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [and]
+            left:
+              $ref: '#/components/schemas/GeometricFormula'
+            right:
+              $ref: '#/components/schemas/GeometricFormula'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [or]
+            disjuncts:
+              type: array
+              items:
+                $ref: '#/components/schemas/GeometricFormula'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [exists]
+            variable:
+              $ref: '#/components/schemas/TypedVariable'
+            formula:
+              $ref: '#/components/schemas/GeometricFormula'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [truth, falsity]
+
+    LogicalRelation:
+      oneOf:
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [equals]
+            left:
+              $ref: '#/components/schemas/TypedValue'
+            right:
+              $ref: '#/components/schemas/TypedValue'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [less_than, greater_than]
+            left:
+              $ref: '#/components/schemas/TypedValue'
+            right:
+              $ref: '#/components/schemas/TypedValue'
+        - type: object
+          properties:
+            type:
+              type: string
+              enum: [predicate]
+            predicate_id:
+              type: string
+              format: uuid
+            arguments:
+              type: array
+              items:
+                $ref: '#/components/schemas/TypedValue'
+
+    CreateTripletRequest:
+      type: object
+      required:
+        - triplet_type
+        - description
+      properties:
+        triplet_type:
+          type: string
+          enum: [source, branch, leaf]
+        description:
+          type: string
+        parent_id:
+          type: string
+          format: uuid
+          description: Required for branch and leaf triplets
+        initial_domains:
+          $ref: '#/components/schemas/TripletDomains'
+        acceptance_criteria:
+          $ref: '#/components/schemas/AcceptanceCriteria'
+
+    UpdateTripletRequest:
+      type: object
+      properties:
+        description:
+          type: string
+        domains:
+          $ref: '#/components/schemas/TripletDomains'
+        arrows:
+          $ref: '#/components/schemas/DataflowArrows'
+        acceptance_criteria:
+          $ref: '#/components/schemas/AcceptanceCriteria'
+
+    RefinementRequest:
+      type: object
+      required:
+        - subtasks
+      properties:
+        subtasks:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubtaskSpecification'
+        refinement_strategy:
+          type: string
+          enum: [parallel, sequential, mixed]
+        inclusion_constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/InclusionConstraint'
+
+    SubtaskSpecification:
+      type: object
+      required:
+        - description
+        - domain_focus
+      properties:
+        description:
+          type: string
+        domain_focus:
+          type: string
+          enum: [model, execution, update, mixed]
+        estimated_complexity:
+          type: string
+          enum: [low, medium, high]
+        acceptance_criteria:
+          $ref: '#/components/schemas/AcceptanceCriteria'
+
+    CoarseningRequest:
+      type: object
+      required:
+        - target_triplets
+      properties:
+        target_triplets:
+          type: array
+          items:
+            type: string
+            format: uuid
+        coarsening_strategy:
+          type: string
+          enum: [merge, consolidate, archive]
+        preservation_rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/PreservationRule'
+
+    RefinementResult:
+      type: object
+      properties:
+        parent_id:
+          type: string
+          format: uuid
+        children:
+          type: array
+          items:
+            $ref: '#/components/schemas/MEUTriplet'
+        inclusions:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/InclusionMap'
+        metrics:
+          $ref: '#/components/schemas/RefinementMetrics'
+
+    CoarseningResult:
+      type: object
+      properties:
+        target_id:
+          type: string
+          format: uuid
+        collapsed:
+          type: array
+          items:
+            type: string
+            format: uuid
+        consolidated:
+          $ref: '#/components/schemas/MEUTriplet'
+        preserved:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/PreservationSpec'
+        metrics:
+          $ref: '#/components/schemas/CoarseningMetrics'
+
+    VerificationRequest:
+      type: object
+      required:
+        - acceptance_criteria
+      properties:
+        acceptance_criteria:
+          $ref: '#/components/schemas/AcceptanceCriteria'
+        timeout_seconds:
+          type: integer
+          minimum: 1
+          maximum: 300
+          default: 30
+        solver_config:
+          $ref: '#/components/schemas/SolverConfiguration'
+
+    VerificationResult:
+      type: object
+      properties:
+        result:
+          type: string
+          enum: [satisfied, unsatisfied, unknown, timeout, error]
+        proof:
+          type: string
+          description: Proof trace from SMT solver
+        counterexample:
+          type: object
+          description: Counterexample if unsatisfied
+        execution_time:
+          type: number
+          description: Execution time in seconds
+        solver_info:
+          $ref: '#/components/schemas/SolverInfo'
+
+    SystemStatus:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+        uptime:
+          type: number
+          description: Uptime in seconds
+        version:
+          type: string
+        triplet_count:
+          type: integer
+        registry_counts:
+          type: object
+          properties:
+            types:
+              type: integer
+            values:
+              type: integer
+            dsl_primitives:
+              type: integer
+            tests:
+              type: integer
+            axioms:
+              type: integer
+        memory_usage:
+          $ref: '#/components/schemas/MemoryUsage'
+        last_updated:
+          type: string
+          format: date-time
+
+    SystemMetrics:
+      type: object
+      properties:
+        performance:
+          $ref: '#/components/schemas/PerformanceMetrics'
+        operations:
+          $ref: '#/components/schemas/OperationMetrics'
+        errors:
+          $ref: '#/components/schemas/ErrorMetrics'
+        concurrency:
+          $ref: '#/components/schemas/ConcurrencyMetrics'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: object
+        timestamp:
+          type: string
+          format: date-time
+        request_id:
+          type: string
+          format: uuid
+
+    # Placeholder schemas for complex nested objects
+    Specification:
+      type: object
+    ExecutionEnvironment:
+      type: object
+    DeployedModel:
+      type: object
+    LoggingConfiguration:
+      type: object
+    ResourceAllocation:
+      type: object
+    FeedbackChannel:
+      type: object
+    Evaluator:
+      type: object
+    Verifier:
+      type: object
+    GeometricTheory:
+      type: object
+    AcceptanceCriterion:
+      type: object
+    UpdatePolicy:
+      type: object
+    ArrowComposition:
+      type: object
+    ArrowMetrics:
+      type: object
+    ArrowConstraint:
+      type: object
+    ArrowMetadata:
+      type: object
+    TypeValidator:
+      type: object
+    TypeConstructor:
+      type: object
+    TypeDestructor:
+      type: object
+    TypeMetadata:
+      type: object
+    ValueMetadata:
+      type: object
+    PrimitiveMetadata:
+      type: object
+    CriteriaMetadata:
+      type: object
+    TypedVariable:
+      type: object
+    InclusionMap:
+      type: object
+    InclusionConstraint:
+      type: object
+    PreservationRule:
+      type: object
+    RefinementMetrics:
+      type: object
+    CoarseningMetrics:
+      type: object
+    PreservationSpec:
+      type: object
+    SolverConfiguration:
+      type: object
+    SolverInfo:
+      type: object
+    MemoryUsage:
+      type: object
+    PerformanceMetrics:
+      type: object
+    OperationMetrics:
+      type: object
+    ErrorMetrics:
+      type: object
+    ConcurrencyMetrics:
+      type: object
+    ConsistencyCheckRequest:
+      type: object
+    ConsistencyCheckResult:
+      type: object
+    TestDefinition:
+      type: object
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+security:
+  - ApiKeyAuth: []
