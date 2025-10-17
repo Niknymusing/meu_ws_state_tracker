@@ -45,12 +45,15 @@ library
     MEU.WS.Registries
     MEU.DSL.Types
     MEU.DSL.Primitives
+    MEU.DSL.DataflowArrows
+    MEU.DSL.Composition
+    MEU.API.SUDIntegration
     MEU.Transforms.Refinement
     MEU.Transforms.Coarsening
     MEU.IO.API
     MEU.Logic.Geometric
-  other-modules:
     MEU.Internal.Utils
+  other-modules:
   hs-source-dirs: src
   build-depends:
     base >= 4.16 && < 5,
@@ -67,7 +70,8 @@ library
     aeson >= 2.0,
     bytestring >= 0.11,
     vector >= 0.12,
-    unordered-containers >= 0.2
+    unordered-containers >= 0.2,
+    matrix >= 0.3
 
 executable meu-ws-tracker
   import: common-options
@@ -90,7 +94,11 @@ test-suite meu-ws-tracker-test
     base,
     meu-ws-state-tracker,
     hspec >= 2.8,
-    QuickCheck >= 2.14
+    QuickCheck >= 2.14,
+    containers >= 0.6,
+    stm >= 2.5,
+    text >= 1.2,
+    time >= 1.11
 
 benchmark meu-ws-tracker-bench
   import: common-options
