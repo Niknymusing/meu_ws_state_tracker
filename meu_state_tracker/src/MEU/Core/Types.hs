@@ -75,7 +75,7 @@ module MEU.Core.Types
   , Proxy (..)
   ) where
 
-import Data.Aeson (FromJSON, ToJSON)
+import Data.Aeson (FromJSON, ToJSON, FromJSONKey, ToJSONKey)
 import Data.Hashable (Hashable)
 import Data.Kind (Constraint, Type)
 import Data.Text (Text)
@@ -96,94 +96,94 @@ data DomainProxy (d :: DomainId) = DomainProxy
 -- | Unique identifier for MEU triplets
 newtype TripletId = TripletId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Unique identifier for type definitions
 newtype TypeId = TypeId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Unique identifier for typed values
 newtype ValueId = ValueId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Unique identifier for DSL primitives
 newtype DSLPrimitiveId = DSLPrimitiveId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Unique identifier for tests
 newtype TestId = TestId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Unique identifier for axioms
 newtype AxiomId = AxiomId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Unique identifier for dataflow arrows
 newtype ArrowId = ArrowId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Additional identifier types for complete MEU system
 newtype SpecificationId = SpecificationId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype ModelId = ModelId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype ChannelId = ChannelId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype EvaluatorId = EvaluatorId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype VerifierId = VerifierId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype CriteriaId = CriteriaId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype PolicyId = PolicyId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype PredicateId = PredicateId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype ConstantId = ConstantId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype SortId = SortId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype FunctionId = FunctionId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype RelationId = RelationId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype CompositionId = CompositionId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 newtype PlanId = PlanId UUID
   deriving stock (Show, Eq, Ord, Generic)
-  deriving newtype (ToJSON, FromJSON, Hashable)
+  deriving newtype (ToJSON, FromJSON, ToJSONKey, FromJSONKey, Hashable)
 
 -- | Metadata for MEU triplets
 data TripletMetadata = TripletMetadata

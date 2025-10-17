@@ -15,6 +15,8 @@ import Data.Time (getCurrentTime)
 
 import MEU.Core.Types
 import MEU.Core.Triplet
+import MEU.Logic.GeometricTheory (createTheory)
+import MEU.Transforms.Refinement (InclusionMap(..), InclusionRelation(..))
 
 -- | Test specification for MEU triplet functionality
 spec :: Spec
@@ -27,9 +29,9 @@ spec = describe "MEU Triplet" $ do
       let metadata = TripletMetadata timestamp timestamp (Version 1 0 0) "Test triplet" Nothing [] [] 0
           modelState = ModelState mempty mempty mempty mempty mempty
           execState = ExecutionState (ExecutionEnvironment "test" "test env" "{}") mempty (LoggingConfiguration "info" "stdout" "json") (ResourceAllocation 1 1024 1000) mempty
-          updateState = UpdateState mempty mempty undefined mempty mempty
+          updateState = UpdateState mempty mempty (createDefaultTheory timestamp) mempty mempty
           domains = TripletDomains (mkModelDomain modelState) (mkExecutionDomain execState) (mkUpdateDomain updateState)
-          triplet = mkMEUTriplet tripletId SourceTriplet metadata domains undefined undefined Active
+          triplet = mkMEUTriplet tripletId SourceTriplet metadata domains createDefaultCriteria createDefaultInclusions Active
 
       getTripletId triplet `shouldBe` tripletId
       getTripletType triplet `shouldBe` SourceTriplet
@@ -41,9 +43,9 @@ spec = describe "MEU Triplet" $ do
       let metadata = TripletMetadata timestamp timestamp (Version 1 0 0) "Invalid triplet" (Just parentId) [] [] 0
           modelState = ModelState mempty mempty mempty mempty mempty
           execState = ExecutionState (ExecutionEnvironment "test" "test env" "{}") mempty (LoggingConfiguration "info" "stdout" "json") (ResourceAllocation 1 1024 1000) mempty
-          updateState = UpdateState mempty mempty undefined mempty mempty
+          updateState = UpdateState mempty mempty (createDefaultTheory timestamp) mempty mempty
           domains = TripletDomains (mkModelDomain modelState) (mkExecutionDomain execState) (mkUpdateDomain updateState)
-          triplet = mkMEUTriplet tripletId SourceTriplet metadata domains undefined undefined Active
+          triplet = mkMEUTriplet tripletId SourceTriplet metadata domains createDefaultCriteria createDefaultInclusions Active
 
       validateTripletStructure triplet `shouldSatisfy` isLeft
 
@@ -54,9 +56,9 @@ spec = describe "MEU Triplet" $ do
       let metadata = TripletMetadata timestamp timestamp (Version 1 0 0) "Branch triplet" (Just parentId) [] [] 1
           modelState = ModelState mempty mempty mempty mempty mempty
           execState = ExecutionState (ExecutionEnvironment "test" "test env" "{}") mempty (LoggingConfiguration "info" "stdout" "json") (ResourceAllocation 1 1024 1000) mempty
-          updateState = UpdateState mempty mempty undefined mempty mempty
+          updateState = UpdateState mempty mempty (createDefaultTheory timestamp) mempty mempty
           domains = TripletDomains (mkModelDomain modelState) (mkExecutionDomain execState) (mkUpdateDomain updateState)
-          triplet = mkMEUTriplet tripletId BranchTriplet metadata domains undefined undefined Active
+          triplet = mkMEUTriplet tripletId BranchTriplet metadata domains createDefaultCriteria createDefaultInclusions Active
 
       getTripletId triplet `shouldBe` tripletId
       getTripletType triplet `shouldBe` BranchTriplet
@@ -66,7 +68,7 @@ spec = describe "MEU Triplet" $ do
     it "should extract correct domain states" $ do
       let modelState = ModelState mempty mempty mempty mempty mempty
           execState = ExecutionState (ExecutionEnvironment "test" "test env" "{}") mempty (LoggingConfiguration "info" "stdout" "json") (ResourceAllocation 1 1024 1000) mempty
-          updateState = UpdateState mempty mempty undefined mempty mempty
+          updateState = UpdateState mempty mempty (createDefaultTheory timestamp) mempty mempty
           modelDomain = mkModelDomain modelState
           execDomain = mkExecutionDomain execState
           updateDomain = mkUpdateDomain updateState
@@ -82,9 +84,9 @@ spec = describe "MEU Triplet" $ do
       let metadata = TripletMetadata timestamp timestamp (Version 1 0 0) "Property test" Nothing [] [] 0
           modelState = ModelState mempty mempty mempty mempty mempty
           execState = ExecutionState (ExecutionEnvironment "test" "test env" "{}") mempty (LoggingConfiguration "info" "stdout" "json") (ResourceAllocation 1 1024 1000) mempty
-          updateState = UpdateState mempty mempty undefined mempty mempty
+          updateState = UpdateState mempty mempty (createDefaultTheory timestamp) mempty mempty
           domains = TripletDomains (mkModelDomain modelState) (mkExecutionDomain execState) (mkUpdateDomain updateState)
-          triplet = mkMEUTriplet tripletId SourceTriplet metadata domains undefined undefined Active
+          triplet = mkMEUTriplet tripletId SourceTriplet metadata domains createDefaultCriteria createDefaultInclusions Active
 
       pure $ getTripletId triplet === tripletId
 
@@ -95,9 +97,9 @@ spec = describe "MEU Triplet" $ do
       let metadata = TripletMetadata timestamp timestamp (Version 1 0 0) "Property test" parentId [] [] 0
           modelState = ModelState mempty mempty mempty mempty mempty
           execState = ExecutionState (ExecutionEnvironment "test" "test env" "{}") mempty (LoggingConfiguration "info" "stdout" "json") (ResourceAllocation 1 1024 1000) mempty
-          updateState = UpdateState mempty mempty undefined mempty mempty
+          updateState = UpdateState mempty mempty (createDefaultTheory timestamp) mempty mempty
           domains = TripletDomains (mkModelDomain modelState) (mkExecutionDomain execState) (mkUpdateDomain updateState)
-          triplet = mkMEUTriplet tripletId tripletType metadata domains undefined undefined Active
+          triplet = mkMEUTriplet tripletId tripletType metadata domains createDefaultCriteria createDefaultInclusions Active
 
           expectedValid = case (tripletType, parentExists) of
             (SourceTriplet, False) -> True
@@ -124,3 +126,22 @@ instance Arbitrary TripletType where
 
 instance Arbitrary Version where
   arbitrary = Version <$> arbitrary <*> arbitrary <*> arbitrary
+
+-- Helper functions for test setup
+createDefaultTheory :: Timestamp -> GeometricTheory
+createDefaultTheory timestamp = createTheory $ TheoryMetadata
+  { theoryCreatedAt = timestamp
+  , theoryUpdatedAt = timestamp
+  , theoryDescription = "Test theory"
+  , theoryVersion = Version 1 0 0
+  }
+
+createDefaultCriteria :: AcceptanceCriteria
+createDefaultCriteria = error "AcceptanceCriteria placeholder"
+
+createDefaultInclusions :: InclusionMap
+createDefaultInclusions = InclusionMap
+  { inclusionModel = InclusionRelation mempty [] False
+  , inclusionExecution = InclusionRelation mempty [] False
+  , inclusionUpdate = InclusionRelation mempty [] False
+  }

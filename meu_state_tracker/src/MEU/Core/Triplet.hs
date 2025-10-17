@@ -47,7 +47,8 @@ module MEU.Core.Triplet
   , validateDomainInclusion
   ) where
 
-import Data.Aeson (FromJSON, ToJSON)
+import Data.Aeson (FromJSON, ToJSON, parseJSON, toJSON)
+import Data.Kind (Type)
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 import Data.Text (Text)

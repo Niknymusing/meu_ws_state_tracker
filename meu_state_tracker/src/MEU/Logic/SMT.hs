@@ -43,6 +43,7 @@ module MEU.Logic.SMT
   , handleSMTTimeout
   ) where
 
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.Async (race)
 import Control.Concurrent.STM (TVar, newTVarIO, readTVar, writeTVar, atomically)
 import Control.Exception (try, SomeException, bracket)
@@ -133,8 +134,8 @@ data ProofTrace = ProofTrace
 
 -- | Solver information
 data SolverInfo = SolverInfo
-  { solverName :: !Text
-  , solverVersion :: !Text
+  { infoSolverName :: !Text
+  , infoSolverVersion :: !Text
   , solverStatistics :: !Text
   } deriving stock (Show, Eq, Generic)
 
@@ -263,8 +264,6 @@ updateSolverMetrics handle executionTime timedOut errored = atomically $ do
       newErrors = if errored then metricsErrors metrics + 1 else metricsErrors metrics
   writeTVar (solverMetrics handle) $ SolverMetrics newCount newAvgTime newTimeouts newErrors (metricsCacheHits metrics)
 
--- Import threadDelay for timeout functionality
-import Control.Concurrent (threadDelay)
 
 -- Forward declarations for types not yet implemented
 data GeometricFormula = PlaceholderFormula

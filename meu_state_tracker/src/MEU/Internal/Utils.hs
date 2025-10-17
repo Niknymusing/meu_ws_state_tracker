@@ -57,6 +57,7 @@ module MEU.Internal.Utils
   , groupByShard
   ) where
 
+import Control.Concurrent (threadDelay)
 import Control.Concurrent.STM
 import Control.Monad (replicateM, when)
 import Control.Monad.IO.Class (MonadIO, liftIO)
@@ -201,7 +202,7 @@ data LogLevel = Debug | Info | Warn | Error
 data LogMessage = LogMessage
   { logLevel :: !LogLevel
   , logTimestamp :: !UTCTime
-  , logMessage :: !Text
+  , logText :: !Text
   , logContext :: !(Map Text Text)
   } deriving stock (Show, Eq, Generic)
 
@@ -223,7 +224,7 @@ logMessage :: MonadIO m => Logger -> LogLevel -> Text -> m ()
 logMessage logger level msg = liftIO $ do
   when (level >= loggerLevel logger) $ do
     timestamp <- getCurrentTime
-    let logMsg = LogMessage level timestamp msg Map.empty
+    let logMsg = LogMessage { logLevel = level, logTimestamp = timestamp, logText = msg, logContext = Map.empty }
     hPutStrLn (loggerHandle logger) $ formatLogMessage logMsg
 
 -- | Log debug message
@@ -244,8 +245,8 @@ logError logger = logMessage logger Error
 
 -- | Format log message for output
 formatLogMessage :: LogMessage -> String
-formatLogMessage (LogMessage level timestamp msg _) =
-  show timestamp <> " [" <> show level <> "] " <> T.unpack msg
+formatLogMessage logMsg =
+  show (logTimestamp logMsg) <> " [" <> show (logLevel logMsg) <> "] " <> T.unpack (logText logMsg)
 
 -- | Performance monitoring
 data PerformanceMonitor = PerformanceMonitor
@@ -360,5 +361,3 @@ groupByShard entries registry =
       let shardIndex = hash k `mod` V.length (registryShards registry)
       in Map.insertWith (++) shardIndex [entry] acc
 
--- Import threadDelay for retry functionality
-import Control.Concurrent (threadDelay)

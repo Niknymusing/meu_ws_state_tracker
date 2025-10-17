@@ -40,7 +40,7 @@ module MEU.Internal.Monad
   , runMEUEffWith
   ) where
 
-import Control.Concurrent.Async (Async)
+import Control.Concurrent.Async (Async, async, wait)
 import Data.Map.Strict (Map)
 import Data.Vector (Vector)
 import Effectful
@@ -187,6 +187,3 @@ data SystemTopology = SystemTopology
 
 data SystemMetrics = SystemMetrics
   deriving stock (Show, Eq, Generic)
-
--- Re-export async for convenience
-import Control.Concurrent.Async (async, wait)

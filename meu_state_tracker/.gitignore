@@ -72,3 +72,6 @@ workspace/
 # Documentation build
 docs/_build/
 docs/dist/
+
+meu_system_tracker_haskell.md
+meu_framework_spec.md
